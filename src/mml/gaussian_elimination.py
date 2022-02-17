@@ -1,35 +1,60 @@
 import numpy as np
+import logging
+
+logging.basicConfig(level=logging.INFO, format='%(message)s')
 
 
-def swap_rows(u, p):
-    for r in range(u.shape[0]):
-        u[r][:len(p)] = [u[r][c] for c in p]
-    return u
+def gen_swap_positions(u_tr, index):
+    return np.array(np.argsort(abs(u_tr[index:, index])))
 
 
-def sum_rows(u_tr, base_col, sum_col, m):
-    u = u_tr.copy()
-    for r in range(u.shape[0]):
-        u[r][base_col] += u[r][sum_col] * m
-    return u
+def stop(u_tr, j, rows):
+    return all([all(u_tr[r, :] == 0) for r in range(j, rows)])
 
 
-u1 = np.array([[1, 1, -3, 1],
-               [2, -1, 0, -1],
-               [-1, 1, -1, 1]], dtype='float')
+def swap_rows(u_tr, p):
+    rows = u_tr.shape[0]
+    start_row = rows - len(p)
+    for c in range(u_tr.shape[1]):
+        u_tr[start_row:, c] = [u_tr[start_row + r][c] for r in p]
+    logging.info(u_tr)
 
-rows = u1.shape[0]
-cols = u1.shape[1]
-u1_tr = u1.copy()
-print(u1_tr)
-for i in range(rows):
-    print(f"------{i}------")
-    pos = np.array(np.argsort(abs(u1_tr[i][:(cols - i)])))
-    u1_tr = swap_rows(u1_tr, p=pos)
-    print(u1_tr)
-    ref_col = cols - i - 1
-    for j in range(ref_col):
-        if u1_tr[i][j] != 0:
-            mult = - u1_tr[i][j] / u1_tr[i][ref_col]
-            u1_tr = sum_rows(u1_tr, j, ref_col, mult)
-        print(u1_tr)
+
+def scale_row(u_tr, row, factor):
+    for c in range(u_tr.shape[1]):
+        u_tr[row][c] *= factor
+    logging.info(u_tr)
+
+
+def sum_rows(u_tr, base_row, fixed_row, factor):
+    for c in range(u_tr.shape[1]):
+        u_tr[base_row][c] += u_tr[fixed_row][c] * factor
+    logging.info(u_tr)
+
+
+def run(u):
+    u_tr = np.transpose(u)
+    rows = u_tr.shape[0]
+    cols = u_tr.shape[1]
+    for j in range(cols):
+        logging.info(f"------{j}------")
+        logging.info(u_tr)
+        if stop(u_tr, j, rows):
+            break
+        pos = gen_swap_positions(u_tr, j)
+        swap_rows(u_tr, p=pos)
+        scale_row(u_tr, j, 1 / u_tr[j, j])
+        fixed_row = j
+        for i in range(fixed_row + 1, rows):
+            if u_tr[i][j] != 0:
+                factor = - u_tr[i][j] / u_tr[fixed_row][j]
+                sum_rows(u_tr, i, fixed_row, factor)
+    return u_tr
+
+
+if __name__ == '__main__':
+    u1 = np.array([[1, 1, -3, 1],
+                   [2, -1, 0, -1],
+                   [-1, 1, -1, 1]], dtype='float')
+
+    u_gauss = run(u=u1)
