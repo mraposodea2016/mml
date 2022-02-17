@@ -52,9 +52,22 @@ def run(u):
     return u_tr
 
 
+def calc_dimension(u_gauss):
+    diag = np.diag(u_gauss)
+    return sum(list(filter(lambda e: e == 1, diag)))
+
+
 if __name__ == '__main__':
     u1 = np.array([[1, 1, -3, 1],
                    [2, -1, 0, -1],
                    [-1, 1, -1, 1]], dtype='float')
 
-    u_gauss = run(u=u1)
+    u2 = np.array([[-1, -2, 2, 1],
+                   [2, -2, 0, 0],
+                   [-3, 6, -2, -1]], dtype='float')
+
+    u1_gauss = run(u=u1)
+    u2_gauss = run(u=u2)
+
+    dim1 = calc_dimension(u1_gauss)
+    dim2 = calc_dimension(u2_gauss)
