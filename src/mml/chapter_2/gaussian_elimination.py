@@ -1,14 +1,19 @@
 import numpy as np
 import logging
 
+# Change to logging.WARNING to stop logging
 logging.basicConfig(level=logging.INFO, format='%(message)s')
 
 
-def gen_swap_positions(u_tr, index):
-    return np.array(np.argsort(abs(u_tr[index:, index])))
+def gen_swap_positions(u_tr, col):
+    # Returns the index positions that would sort a given column
+    # by its elements' absolute values
+    return np.array(np.argsort(abs(u_tr[col:, col])))
 
 
 def stop(u_tr, j, rows):
+    # Returns True if all rows below j are made up of zeros,
+    # in which case the elimination has reached its end
     return all([all(u_tr[r, :] == 0) for r in range(j, rows)])
 
 
@@ -42,9 +47,13 @@ def run(u):
         if stop(u_tr, j, rows):
             break
         pos = gen_swap_positions(u_tr, j)
+        # Swap rows as to leave zeros at the bottom of the j column
         swap_rows(u_tr, p=pos)
+        # Scale the j row so that the pivot element equals 1
         scale_row(u_tr, j, 1 / u_tr[j, j])
         fixed_row = j
+        # Sum the remaining rows with multiples of the fixed row
+        # so that their j-column elements are zero
         for i in range(fixed_row + 1, rows):
             if u_tr[i][j] != 0:
                 factor = - u_tr[i][j] / u_tr[fixed_row][j]
@@ -53,6 +62,8 @@ def run(u):
 
 
 def calc_dimension(u_gauss):
+    # Calculate the dimension of space as the number of
+    # pivots in Gauss matrix, ie the number of vectors that form its basis
     diag = np.diag(u_gauss)
     return sum(list(filter(lambda e: e == 1, diag)))
 
