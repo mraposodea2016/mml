@@ -91,10 +91,9 @@ if __name__ == '__main__':
                    [2, 1, 3],
                    [1, 0, 1]], dtype='float')
 
-    u2 = np.array([[3, -3, 0],
-                   [1, 2, 3],
-                   [7, -5, 2],
-                   [3, -1, 2]], dtype='float')
+    u2 = np.array([[1, 1, 0],
+                   [1, -1, 0],
+                   [1, 1, 1]], dtype='float')
 
     u1_gauss = run(u_tr=u1)
     u2_gauss = run(u_tr=u2)
