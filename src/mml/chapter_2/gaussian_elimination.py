@@ -2,7 +2,9 @@ import numpy as np
 import logging
 
 # Change to logging.WARNING to stop logging
-logging.basicConfig(level=logging.INFO, format='%(message)s')
+logging.basicConfig(filename='gaussian_elimination.py',
+
+                    level=logging.INFO, format='%(message)s')
 
 # Rounding Tolerance
 TOL = 10 ** -12
