@@ -18,7 +18,7 @@ def gen_basis_matrix(span):
     find the basis of the space by Gaussian elimination, ie
     find the list of linearly independent vectors from the span list.
     """
-    gauss = gaussian_elimination.run(deepcopy(span))
+    gauss = gaussian_elimination.run(deepcopy(span))['matrix']
     dim = gaussian_elimination.calc_dimension(gauss)
     return np.array([r[:dim] for r in span])
 

@@ -2,9 +2,7 @@ import numpy as np
 import logging
 
 # Change to logging.WARNING to stop logging
-logging.basicConfig(filename='gaussian_elimination.py',
-
-                    level=logging.INFO, format='%(message)s')
+logging.basicConfig(level=logging.INFO, format='%(message)s')
 
 # Rounding Tolerance
 TOL = 10 ** -12
@@ -29,6 +27,12 @@ def gen_swap_positions(u_tr, col):
     # Returns the index positions that would sort a given column
     # by its elements' absolute values
     return np.flip(np.array(np.argsort(abs(u_tr[col:, col]))))
+
+
+def count_rows_swapped(pos):
+    swapped_vs_original = list(zip(pos, list(range(len(pos)))))
+    swapped_positions = list(filter(lambda t: t[0] != t[1], swapped_vs_original))
+    return max(len(swapped_positions) - 1, 0)
 
 
 def stop(u_tr, j, rows):
@@ -60,6 +64,8 @@ def sum_rows(u_tr, base_row, fixed_row, factor):
 def run(u_tr):
     rows = u_tr.shape[0]
     cols = u_tr.shape[1]
+    scale_factors = []
+    rows_swapped = 0
     for j in range(cols):
         logging.info(f"------{j}------")
         logging.info(u_tr)
@@ -68,8 +74,11 @@ def run(u_tr):
         pos = gen_swap_positions(u_tr, j)
         # Swap rows as to leave zeros at the bottom of the j column
         swap_rows(u_tr, p=pos)
+        rows_swapped += count_rows_swapped(pos)
         # Scale the j row so that the pivot element equals 1
-        scale_row(u_tr, j, 1 / u_tr[j, j])
+        factor = (1 / u_tr[j, j]).copy()
+        scale_factors += [factor]
+        scale_row(u_tr, j, factor)
         fixed_row = j
         # Sum the remaining rows with multiples of the fixed row
         # so that their j-column elements are zero
@@ -77,7 +86,9 @@ def run(u_tr):
             if abs(u_tr[i][j]) > TOL:
                 factor = - u_tr[i][j] / u_tr[fixed_row][j]
                 sum_rows(u_tr, i, fixed_row, factor)
-    return u_tr
+    return {'matrix': u_tr,
+            'scale_factors': scale_factors,
+            'rows_swapped': rows_swapped}
 
 
 def calc_dimension(u_gauss):
@@ -88,10 +99,11 @@ def calc_dimension(u_gauss):
 
 
 if __name__ == '__main__':
-    u1 = np.array([[1, 0, 1],
-                   [1, -2, -1],
-                   [2, 1, 3],
-                   [1, 0, 1]], dtype='float')
+    u1 = np.array([[2, 0, 1, 2, 0],
+                   [2, -1, 0, 1, 1],
+                   [0, 1, 2, 1, 2],
+                   [-2, 0, 2, -1, 2],
+                   [2, 0, 0, 1, 1]], dtype='float')
 
     u2 = np.array([[1, 1, 0],
                    [1, -1, 0],
